@@ -2,16 +2,22 @@ import requests
 from lxml import etree
 import os
 import io
+import shutil
 
+def addNewsUrl(url):
+    fh = os.open("url.txt", os.O_RDWR | os.O_CREAT)
+    os.write(fh, str(url).encode())
+    os.close(fh)
 
 def updateNewsNumber(num):
     os.chdir('../')
-    f = os.open("0.txt", os.O_CREAT | os.O_RDWR)
-    os.write(f, str(num-8))
-    os.close(f)
+    fh = os.open("0.txt", os.O_RDWR | os.O_CREAT)
+    num = abs(num - 8)
+    os.write(fh, str(num).encode())
+    os.close(fh)
     os.chdir('News')
     
-def saveNewsFiles(title, description, images_links):
+def saveNewsFiles(title, description, images_links, url):
     if(checkNews(title)):
         return
     dirs = []
@@ -34,6 +40,7 @@ def saveNewsFiles(title, description, images_links):
         img_count = os.open("images_count.txt", os.O_CREAT | os.O_RDWR)
         os.write(img_count, str(len(images_links)).encode())
         os.close(img_count)
+        addNewsUrl(url)
         os.chdir('../../')
         return
     max = 0
@@ -58,6 +65,7 @@ def saveNewsFiles(title, description, images_links):
     img_count = os.open("images_count.txt", os.O_CREAT | os.O_RDWR)
     os.write(img_count, str(len(images_links)).encode())
     os.close(img_count)
+    addNewsUrl(url)
     os.chdir('../../')
 
 def checkNews(title):
@@ -81,13 +89,14 @@ def loadData():
     parser = MainPageParser("https://admtyumen.ru/ogv_ru/news/subj/all.htm")
     data = parser.getData()
     for i in range(len(data)):
-        saveNewsFiles(data[i].title, data[i].description, data[i].images_links)
+        saveNewsFiles(data[i].title, data[i].description, data[i].images_links, data[i].url)
 
 class NewsItem:
-    def __init__(self, title, description, images_links):
+    def __init__(self, title, description, images_links, url):
         self.title = title
         self.description = description
         self.images_links = images_links
+        self.url = url
 
 class MainPageParser:
     _news = []
@@ -107,6 +116,8 @@ class MainPageParser:
         if(count > len(titles)):
             count = len(titles)
         for i in range(count):
+            if checkNews(titles[i]):
+                continue
             item = news_page_parser.getNewsItem("https://admtyumen.ru/"+full_news_links[i])
             if not item.images_links:
                 item.images_links = images_links
@@ -125,5 +136,5 @@ class NewsPageParser:
         title = str(title).replace('\\xa0', ' ')
         for i in range(len(description)):
             description[i] = str(description[i]).replace('\\xa0', ' ')
-        item = NewsItem(title, description, images_links)
+        item = NewsItem(title, description, images_links, url)
         return item
