@@ -20,7 +20,7 @@ def verifyNewsCount():
 def launch():
     while True:
         print("Update!")
-        time.sleep(300)
+        time.sleep(3)
         HTMLParser.loadData()
         verifyNewsCount()
 

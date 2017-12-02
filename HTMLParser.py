@@ -4,6 +4,13 @@ import os
 import io
 
 
+def updateNewsNumber(num):
+    os.chdir('../')
+    f = os.open("0.txt", os.O_CREAT | os.O_RDWR)
+    os.write(f, str(num-8))
+    os.close(f)
+    os.chdir('News')
+    
 def saveNewsFiles(title, description, images_links):
     if(checkNews(title)):
         return
@@ -14,7 +21,7 @@ def saveNewsFiles(title, description, images_links):
         os.mkdir("1")
         os.chdir("1")
         file = os.open("title.txt", os.O_CREAT | os.O_RDWR)
-        os.write(file, str(title).encode())
+        os.write(file, str(title).replace("""['""","").replace("""']""","").encode())
         os.close(file)
         desc = os.open("description.txt", os.O_CREAT | os.O_RDWR)
         for i in range(len(description)):
@@ -35,6 +42,7 @@ def saveNewsFiles(title, description, images_links):
         if max < int(dirname):
             max = int(dirname)
     os.mkdir(str(max+1))
+    updateNewsNumber(max)
     os.chdir(str(max+1))
     fh = os.open("title.txt", os.O_RDWR | os.O_CREAT)
     os.write(fh, str(title).encode())
@@ -61,7 +69,6 @@ def checkNews(title):
         dirs.append(dirname)
     os.chdir('../')
     for item in dirs:
-        #file = open(os.getcwd()+'/News/'+str(item)+'/title.txt', "r")
         file = io.open(os.getcwd()+'/News/'+str(item)+'/title.txt', mode="r", encoding="utf-8")
         text = file.read()
         if(title == text):
